@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fire And Smoke Detection</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --dark-blue: #0a1929;
+            --dark-blue-secondary: #132f4c;
+            --aqua: #00d4ff;
+            --aqua-light: #4ddbff;
+            --aqua-dark: #0099cc;
+            --text-light: #e3f2fd;
+            --text-muted: #90caf9;
+            --border-aqua: #00d4ff;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, var(--dark-blue) 0%, var(--dark-blue-secondary) 100%);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: var(--text-light);
+        }
+
+        #container {
+            max-width: 800px;
+            width: 100%;
+            padding: 30px;
+            background: rgba(19, 47, 76, 0.9);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 212, 255, 0.2);
+            border-radius: 20px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--aqua), transparent);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { opacity: 0.5; }
+            to { opacity: 1; }
+        }
+
+        #container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 212, 255, 0.3);
+        }
+
+        h1 {
+            color: var(--aqua);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-top: 0;
+            font-size: 2.5em;
+            font-weight: 700;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            font-size: 1.5em;
+            margin-bottom: 25px;
+            color: var(--text-light);
+            border-bottom: 2px solid var(--aqua);
+            display: inline-block;
+            padding-bottom: 10px;
+        }
+
+        form {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 10px;
+            box-sizing: border-box;
+            background: rgba(10, 25, 41, 0.8);
+            color: var(--text-light);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        input[type="file"]:focus {
+            outline: none;
+            border-color: var(--aqua);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+        }
+
+        /* Custom file input styling */
+        input[type="file"]::-webkit-file-upload-button {
+            background: linear-gradient(45deg, var(--aqua), var(--aqua-light));
+            color: var(--dark-blue);
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="file"]::-webkit-file-upload-button:hover {
+            background: linear-gradient(45deg, var(--aqua-light), var(--aqua));
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+        }
+
+        input[type="file"]::file-selector-button {
+            background: linear-gradient(45deg, var(--aqua), var(--aqua-light));
+            color: var(--dark-blue);
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="file"]::file-selector-button:hover {
+            background: linear-gradient(45deg, var(--aqua-light), var(--aqua));
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+        }
+
+        input[type="submit"],
+        #startCamera {
+            background: linear-gradient(45deg, var(--aqua), var(--aqua-light));
+            color: var(--dark-blue);
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+            font-weight: 600;
+            font-size: 1.1em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input[type="submit"]:hover,
+        #startCamera:hover {
+            background: linear-gradient(45deg, var(--aqua-light), var(--aqua));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
+        }
+
+        #video-container {
+            position: relative;
+            margin-top: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.2);
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            overflow: hidden;
+        }
+
+        #video {
+            width: 100%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+            border: 2px solid var(--aqua);
+        }
+
+        #output {
+            width: 100%;
+            height: auto;
+            border-radius: 15px;
+            margin-top: 20px;
+            border: 2px solid var(--aqua);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+        }
+
+        #loading {
+            display: none;
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: var(--aqua);
+            font-weight: 500;
+        }
+
+        .camera-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(10, 25, 41, 0.5);
+            border-radius: 15px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .camera-section h2 {
+            color: var(--aqua);
+            margin-bottom: 20px;
+        }
+
+        #startCamera {
+            margin-top: 15px;
+        }
+
+        /* File section layout */
+        .file-section {
+            margin-top: 20px;
+        }
+
+        .upload-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(10, 25, 41, 0.6);
+            border-radius: 15px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .upload-section h3 {
+            color: var(--aqua);
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        /* File history section */
+        .file-history {
+            padding: 20px;
+            background: rgba(10, 25, 41, 0.6);
+            border-radius: 15px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .file-history h3 {
+            color: var(--aqua);
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .file-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            background: rgba(19, 47, 76, 0.8);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .file-item:hover {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: var(--aqua);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 212, 255, 0.2);
+        }
+
+        .file-item.selected {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: var(--aqua);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .file-icon {
+            font-size: 2em;
+            margin-bottom: 5px;
+            color: var(--aqua);
+        }
+
+        .file-name {
+            font-size: 0.8em;
+            color: var(--text-light);
+            word-break: break-word;
+            line-height: 1.2;
+        }
+
+        .file-size {
+            font-size: 0.7em;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+
+        .file-date {
+            font-size: 0.6em;
+            color: var(--text-muted);
+            margin-top: 2px;
+            opacity: 0.8;
+        }
+
+        .use-selected-file {
+            background: linear-gradient(45deg, var(--aqua), var(--aqua-light));
+            color: var(--dark-blue);
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9em;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .use-selected-file:hover {
+            background: linear-gradient(45deg, var(--aqua-light), var(--aqua));
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+        }
+
+        .use-selected-file:disabled {
+            background: rgba(144, 202, 249, 0.3);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .refresh-files {
+            background: linear-gradient(45deg, var(--dark-blue-secondary), var(--dark-blue));
+            color: var(--aqua);
+            padding: 8px 16px;
+            border: 1px solid var(--aqua);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-files:hover {
+            background: linear-gradient(45deg, var(--aqua), var(--aqua-light));
+            color: var(--dark-blue);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            #container {
+                margin: 20px;
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+
+            .file-list {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>BlazeVision</h1>
+        <div class="file-section">
+            <h2>Choose Your File</h2>
+            
+            <!-- Upload New File Section -->
+            <div class="upload-section">
+                <h3>📤 Upload New File</h3>
+                <form action="/" method="post" enctype="multipart/form-data" onsubmit="showLoading()">
+                    <input type="file" name="file" accept="image/*,video/*" id="fileInput">
+                    <input type="submit" value="Upload and Process">
+                    <div id="loading">Processing...</div>
+                </form>
+            </div>
+
+            <!-- Previously Uploaded Files Section -->
+            <div class="file-history">
+                <h3>📁 Previously Uploaded Files</h3>
+                <div class="file-list" id="fileList">
+                    <!-- File items will be populated here -->
+                </div>
+                <div class="file-actions">
+                    <button class="use-selected-file" id="useSelectedFile" disabled>Use Selected File</button>
+                    <button class="refresh-files" id="refreshFiles">🔄 Refresh List</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
+    <script>
+        var video = document.getElementById('video');
+        var output = document.getElementById('output');
+        var processedVideo = document.getElementById('processedVideo');
+        var startCameraBtn = document.getElementById('startCamera');
+        var loading = document.getElementById('loading');
+        var loadingVideo = document.getElementById('loadingVideo');
+        var fileInput = document.getElementById('fileInput');
+        var fileList = document.getElementById('fileList');
+        var useSelectedFileBtn = document.getElementById('useSelectedFile');
+        var refreshFilesBtn = document.getElementById('refreshFiles');
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+        
+        // File history management
+        var uploadedFiles = [];
+        var selectedFileIndex = -1;
+
+        function showLoading() {
+            loading.style.display = 'block';
+            // Refresh file list after form submission
+            setTimeout(refreshFileList, 2000); // Delay to allow processing to complete
+        }
+
+        function showLoadingVideo() {
+            loadingVideo.style.display = 'block';
+        }
+
+        // Initialize file history on page load
+        function initializeFileHistory() {
+            fetchUploadedFiles();
+        }
+
+        // Fetch uploaded files from server
+        function fetchUploadedFiles() {
+            return fetch('/get_uploaded_files')
+                .then(response => response.json())
+                .then(files => {
+                    uploadedFiles = files;
+                    renderFileList();
+                })
+                .catch(error => {
+                    console.error('Error fetching files:', error);
+                    renderFileList();
+                });
+        }
+
+        // Render the file list
+        function renderFileList() {
+            fileList.innerHTML = '';
+            
+            if (uploadedFiles.length === 0) {
+                fileList.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 20px;">No files uploaded yet</div>';
+                return;
+            }
+
+            uploadedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.onclick = () => selectFile(index);
+                
+                const fileIcon = getFileIcon(file.type);
+                const fileSize = formatFileSize(file.size);
+                const modifiedDate = new Date(file.modified).toLocaleDateString();
+                
+                fileItem.innerHTML = `
+                    <div class="file-icon">${fileIcon}</div>
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-size">${fileSize}</div>
+                    <div class="file-date">${modifiedDate}</div>
+                `;
+                
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        // Select a file from history
+        function selectFile(index) {
+            // Remove previous selection
+            const items = fileList.querySelectorAll('.file-item');
+            items.forEach(item => item.classList.remove('selected'));
+            
+            // Add selection to clicked item
+            items[index].classList.add('selected');
+            selectedFileIndex = index;
+            useSelectedFileBtn.disabled = false;
+        }
+
+        // Use selected file
+        useSelectedFileBtn.onclick = function() {
+            if (selectedFileIndex >= 0 && selectedFileIndex < uploadedFiles.length) {
+                const selectedFile = uploadedFiles[selectedFileIndex];
+                
+                // Fetch the file from server and create a File object
+                fetch(selectedFile.url)
+                    .then(response => response.blob())
+                    .then(blob => {
+                        const file = new File([blob], selectedFile.name, {
+                            type: getMimeType(selectedFile.name)
+                        });
+                        
+                        // Set the file input value
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(file);
+                        fileInput.files = dataTransfer.files;
+                        
+                        // Show success message
+                        alert(`Selected: ${selectedFile.name}`);
+                    })
+                    .catch(error => {
+                        console.error('Error loading file:', error);
+                        alert('Error loading file. Please try again.');
+                    });
+            }
+        };
+
+        // Get MIME type from filename
+        function getMimeType(filename) {
+            const ext = filename.toLowerCase().split('.').pop();
+            const mimeTypes = {
+                'jpg': 'image/jpeg',
+                'jpeg': 'image/jpeg',
+                'png': 'image/png',
+                'gif': 'image/gif',
+                'mp4': 'video/mp4',
+                'avi': 'video/avi',
+                'mov': 'video/quicktime'
+            };
+            return mimeTypes[ext] || 'application/octet-stream';
+        }
+
+        // Get appropriate icon for file type
+        function getFileIcon(type) {
+            if (type === 'image') {
+                return '🖼️';
+            } else if (type === 'video') {
+                return '🎥';
+            } else {
+                return '📄';
+            }
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Refresh file list after upload
+        function refreshFileList() {
+            fetchUploadedFiles();
+        }
+
+        // Handle file input change
+        fileInput.onchange = function() {
+            if (fileInput.files.length > 0) {
+                // Refresh the file list after a new file is selected
+                setTimeout(refreshFileList, 1000); // Small delay to allow upload to complete
+            }
+        };
+
+        // Refresh files button
+        refreshFilesBtn.onclick = function() {
+            refreshFilesBtn.textContent = '🔄 Loading...';
+            refreshFilesBtn.disabled = true;
+            
+            fetchUploadedFiles().then(() => {
+                refreshFilesBtn.textContent = '🔄 Refresh List';
+                refreshFilesBtn.disabled = false;
+            }).catch(() => {
+                refreshFilesBtn.textContent = '🔄 Refresh List';
+                refreshFilesBtn.disabled = false;
+            });
+        };
+
+        startCameraBtn.onclick = function() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
+                    video.srcObject = stream;
+                    video.style.display = 'block';
+                    video.play();
+                    setTimeout(processFrame, 5000);
+                });
+            }
+        }
+
+        function processFrame() {
+            var canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            var context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            var blob = canvas.toBlob(function(blob) {
+                var formData = new FormData();
+                formData.append('file', blob);
+
+                fetch('/process_frame', {
+                    method: 'POST',
+                    body: formData
+                }).then(response => response.blob())
+                    .then(images => {
+                        var outside = URL.createObjectURL(images);
+                        output.src = outside;
+                        output.style.display = 'block';
+                        loading.style.display = 'none'; // Hide loading indicator
+                        setTimeout(processFrame, 500);
+                    });
+            }, 'image/jpeg');
+        }
+
+        // Function to process video
+        function processVideo() {
+            var fileInput = document.querySelector('input[name="file"]');
+            var formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            fetch('/process_video', {
+                method: 'POST',
+                body: formData
+            }).then(response => response.blob())
+                .then(videoBlob => {
+                    var videoUrl = URL.createObjectURL(videoBlob);
+                    processedVideo.src = videoUrl;
+                    processedVideo.style.display = 'block';
+                    loadingVideo.style.display = 'none'; // Hide loading indicator for video
+                });
+        }
+
+        // Initialize file history when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeFileHistory();
+        });
+    </script>
+</body>
+</html>
